@@ -2,6 +2,11 @@
 Graphical and minimalistic hex editor. Comes with coloring of magic numbers to
 aid in recognizing the type of file you are dealing with.
 
+
+<p align="center">
+  <img src="screenshot.png">
+</p>
+
 Build
 =====
 Prerequisites are `SDL2` and `SDL2_TTF` libraries. To build the app just run:
