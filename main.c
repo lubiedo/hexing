@@ -291,14 +291,25 @@ static void draw_offsetcol(void)
   posy = win.offsetcol.y;
   posx = win.offsetcol.x;
 
-  long pos = doc.fpos - (doc.fpos % (win.colsize));
-  long posend = pos + (win.colsize) * win.rows;
+  long pos = doc.fpos - (doc.fpos % win.colsize);
+  long posend = pos + win.colsize * win.rows;
+  long cpos = doc.fpos + win.curpos;
   for (int col = 0;pos != posend; col++, pos+=(win.colsize)) {
     char offstr[5];
     off_toasciihex(pos, offstr);
 
     if (col > 0) posy += win.font_height * 2;
-    draw_text(offstr, posx, posy, theme.ngcolor);
+    if (pos <= cpos && cpos < pos + win.colsize) {
+      if (doc.magic.suffix != NULL &&
+          (doc.magic.hdr_pos-(doc.magic.hdr_pos%win.colsize)) == pos){
+        draw_cursor(posx, posy-1, theme.mgcolor, theme.bgcolor, 4);
+      } else {
+        draw_cursor(posx, posy-1, theme.ngcolor, theme.bgcolor, 4);
+      }
+      draw_text(offstr, posx, posy, theme.bgcolor);
+    } else {
+      draw_text(offstr, posx, posy, theme.ngcolor);
+    }
   }
 }
 
