@@ -69,7 +69,6 @@ TTF_Font *font;
 static const char *filepath;
 static int dragging, drag_mx, drag_my;
 static int currcmd;
-static long pagesize;
 static int spaces;
 static char input[4];
 
@@ -604,8 +603,6 @@ int main(int argc, char **argv)
 
   spaces  = win.cols - 1;
   currcmd = CMD_NONE;
-  pagesize  = sysconf(_SC_PAGESIZE);
-  pagesize += pagesize%16;
 
   init_content();
   running();
