@@ -299,7 +299,7 @@ static void draw_offsetcol(void)
     off_toasciihex(pos, offstr);
 
     if (col > 0) posy += win.font_height * 2;
-    if (pos <= cpos && cpos < pos + win.colsize) {
+    if (cpos-(cpos%win.colsize) == pos) {
       if (doc.magic.suffix != NULL &&
           (doc.magic.hdr_pos-(doc.magic.hdr_pos%win.colsize)) == pos){
         draw_cursor(posx, posy-1, theme.mgcolor, theme.bgcolor, 4);
