@@ -11,16 +11,14 @@ Build
 =====
 Prerequisites are `SDL2` and `SDL2_TTF` libraries. To build the app just run:
 ```
-$ gcc main.c -o hexing -lSDL2 -lSDL2_ttf -O3 -pedantic
+$ make
 ```
 You can optionally run `strip hexing` later to cut some bytes from the final
 binary but won't do much difference.
 
 Usage
 =====
-Mouse support was left behind as the usage is keyboard exclusive. Mouse is only
-used for moving the window which can be done by pressing down the right mouse
-button at any position of the window and dragging it.
+Mouse interaction is still very limited in purpose and optional.
 
 Keys:
  * `UP/DOWN/PAGEUP/PAGEDOWN`: navigation through the file.
@@ -31,6 +29,10 @@ Keys:
  * `x/X`: copy 1 or 4 escaped bytes from file.
  * `n`: write NOP (0x90) to position in file.
  * `ESC/q`: quit the application.
+
+Mouse:
+ * Grab the window to drag it anywhere in the screen.
+ * Left click will select the byte in content.
 
 Customize
 =========

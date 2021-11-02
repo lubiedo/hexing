@@ -58,7 +58,7 @@ struct Doc {
 } doc = {
   .fd    = -1,
   .ro    = -1,
-  .magic = NULL
+  .magic = {NULL}
 };
 
 SDL_Window *window;
@@ -66,7 +66,6 @@ SDL_Surface *screen;
 SDL_Renderer *renderer;
 TTF_Font *font;
 
-static const char *filepath;
 static int dragging, drag_mx, drag_my;
 static int currcmd;
 static int spaces;
@@ -81,6 +80,7 @@ static char toprintable(char s);
 static void go(long off);
 static void quit(int code, const char *m);
 static void copy_bytes(int size);
+static void mouse_set_cursor(int x, int y);
 static void grab_input(char c);
 static void draw_background(void);
 static void draw_text(char *s, int x, int y, unsigned int color);
@@ -175,6 +175,30 @@ static void copy_bytes(int size) /* TODO: `X` should ask for amount of bytes */
     fprintf(stderr, "SDL error: %s\n", SDL_GetError());
 }
 
+static void mouse_set_cursor(int x, int y)
+{
+  int clickx = x - win.content.x,
+      clicky = y - win.content.y;
+
+  if (clickx < 0 || clicky < 0) return;
+  if (clickx > win.content.w || clicky > (win.content.h - win.infobar.h))
+    return;
+
+  int posx = clickx / win.font_width;
+  int posy = clicky / win.font_height;
+  int blank_columns = posx/9;
+
+  if ((posx+1)/9 > blank_columns) return;
+  posx -= blank_columns;
+
+  posy = posy/2;
+  posy = win.colsize*posy;
+
+  long final = doc.fpos + (long)(posx/2 + posy);
+  if (final >= doc.fsize) return;
+  go(final);
+}
+
 static void grab_input(char c)
 {
   char clean = 0;
@@ -242,7 +266,7 @@ static void draw_text(char *s, int x, int y, unsigned int color)
 static void draw_cursor(int x, int y, unsigned int b, unsigned int f, int size)
 {
   SDL_Color bg = TO_SDL_COLOR(b);
-  SDL_Color fg = TO_SDL_COLOR(f);
+//   SDL_Color fg = TO_SDL_COLOR(f);
   SDL_Rect cursor = {
     x - 1, y, win.font_width * size, win.font_height+1
   };
@@ -435,7 +459,11 @@ static void running(void)
           drag_mx  = e.button.x;
           drag_my  = e.button.y;
           dragging = 1;
-        } else { dragging = 0; }
+        } else {
+          if (dragging)
+            mouse_set_cursor(e.button.x, e.button.y);
+          dragging = 0;
+        }
       }
       if (e.type == SDL_MOUSEMOTION && dragging)
         drag_window();
