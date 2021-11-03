@@ -66,6 +66,8 @@ SDL_Surface *screen;
 SDL_Renderer *renderer;
 TTF_Font *font;
 
+static char dot[8] = {0x00, 0x00, 0x18, 0x3c, 0x3c, 0x18, 0x00, 0x00};
+
 static int dragging, drag_mx, drag_my;
 static int currcmd;
 static int spaces;
@@ -236,6 +238,19 @@ static void grab_input(char c)
   }
 }
 
+static void draw_bitmap(char *s, int x, int y, unsigned int f)
+{
+  SDL_Color c = TO_SDL_COLOR(f);
+  SDL_SetRenderDrawColor(renderer, c.r, c.g, c.b, SDL_ALPHA_OPAQUE);
+  for (int i = 0; i<sizeof(s); i++, y++) {
+    char c = s[i];
+    for (int j = 0; j<8; j++) {
+      if ((c>>j)&1)
+        SDL_RenderDrawPoint(renderer, x + j, y);
+    }
+  }
+}
+
 static void draw_background(void)
 {
   SDL_Color bg = TO_SDL_COLOR(theme.bgcolor);
@@ -266,7 +281,6 @@ static void draw_text(char *s, int x, int y, unsigned int color)
 static void draw_cursor(int x, int y, unsigned int b, unsigned int f, int size)
 {
   SDL_Color bg = TO_SDL_COLOR(b);
-//   SDL_Color fg = TO_SDL_COLOR(f);
   SDL_Rect cursor = {
     x - 1, y, win.font_width * size, win.font_height+1
   };
@@ -302,11 +316,17 @@ static void draw_infobar(void)
 
   // print doc info
   char offstr[5];
+  long offset = doc.fpos + win.curpos;
   draw_text((doc.ro ? "ro" : "rw"), win.infobar.w-(win.font_width*6),
     win.infobar.y, theme.ngcolor);
-  off_toasciihex(doc.fpos + win.curpos, offstr);
+  off_toasciihex(offset, offstr);
   draw_text(offstr, win.infobar.w-(win.font_width*3), win.infobar.y,
     theme.fgcolor);
+  for (int i = 0;offset > 0xffff; offset -= 0xffff, i++) {
+    draw_bitmap(dot,
+      win.infobar.x + win.infobar.w - win.font_width - sizeof(dot)*i,
+      win.infobar.y + win.font_width, theme.ngcolor);
+  }
 }
 
 static void draw_offsetcol(void)
@@ -384,7 +404,6 @@ static void show_content(void)
   int posx = win.content.x, posy = win.content.y;
 
   SDL_RenderClear(renderer);
-
   for (int n = 0, nb = 0, r = 0; n < win.amount; n++) {
     char hex[3];
     unsigned char data = docptr[displaypos];
