@@ -84,6 +84,7 @@ static void quit(int code, const char *m);
 static void copy_bytes(int size);
 static void mouse_set_cursor(int x, int y);
 static void grab_input(char c);
+static void draw_bitmap(char *s, int x, int y, unsigned int f);
 static void draw_background(void);
 static void draw_text(char *s, int x, int y, unsigned int color);
 static void draw_cursor(int x, int y, unsigned int b, unsigned int f, int size);
@@ -124,7 +125,9 @@ static long input_to_long(char *s) {
   return r;
 }
 static void toasciihex(unsigned char s, char *d) { snprintf(d, 3, "%02X", s); }
-static void off_toasciihex(int off, char *d) { snprintf(d, 5,"%04X", off); }
+static void off_toasciihex(int off, char *d) {
+  snprintf(d, 5,"%04X", off & 0xffff);
+}
 static char toprintable(char s) { return (s < 0x20 || s > 0x7e) ? '.' : s; }
 static void go(long off)
 {
@@ -315,17 +318,24 @@ static void draw_infobar(void)
 
 
   // print doc info
-  char offstr[5];
-  long offset = doc.fpos + win.curpos;
-  draw_text((doc.ro ? "ro" : "rw"), win.infobar.w-(win.font_width*6),
+  char fsize[5];
+  long nsize = doc.fsize;
+  draw_text((doc.ro ? "ro" : "rw"), win.infobar.w-win.font_width,
     win.infobar.y, theme.ngcolor);
-  off_toasciihex(offset, offstr);
-  draw_text(offstr, win.infobar.w-(win.font_width*3), win.infobar.y,
+  off_toasciihex(nsize, fsize);
+  draw_text(fsize, win.infobar.w - win.font_width*5, win.infobar.y,
     theme.fgcolor);
-  for (int i = 0;offset > 0xffff; offset -= 0xffff, i++) {
+  for (int i = 0;nsize > 0xffff; nsize -= 0xffff, i++) {
+    int x = win.infobar.x + win.infobar.w - win.font_width - sizeof(dot)*i;
+    if (x < win.font_width)
+      break;
     draw_bitmap(dot,
-      win.infobar.x + win.infobar.w - win.font_width - sizeof(dot)*i,
-      win.infobar.y + win.font_width, theme.ngcolor);
+      win.infobar.x + win.infobar.w - win.font_width*3 - sizeof(dot)*i,
+      win.infobar.y + win.font_width,
+      (
+        (nsize == doc.fsize && win.curpos == 0) ||
+        doc.fpos + win.curpos > 0xffff * i
+      ) ? theme.ngcolor : theme.fgcolor);
   }
 }
 
@@ -340,7 +350,6 @@ static void draw_offsetcol(void)
   long cpos = doc.fpos + win.curpos;
   for (int col = 0;pos != posend; col++, pos+=(win.colsize)) {
     char offstr[5];
-    off_toasciihex(pos, offstr);
 
     if (col > 0) posy += win.font_height * 2;
     if (cpos-(cpos%win.colsize) == pos) {
@@ -350,8 +359,10 @@ static void draw_offsetcol(void)
       } else {
         draw_cursor(posx, posy-1, theme.ngcolor, theme.bgcolor, 4);
       }
+      off_toasciihex(doc.fpos + win.curpos, offstr);
       draw_text(offstr, posx, posy, theme.bgcolor);
     } else {
+      off_toasciihex(pos, offstr);
       draw_text(offstr, posx, posy, theme.ngcolor);
     }
   }

@@ -73,6 +73,7 @@ static magic magics[] = {
   {"mach-o", "\xFE\xED\xFA\xCF", NULL, 4, 0, 0x1000},
   {"flac","\x66\x4C\x61\x43", NULL, 4, 0, 0},
   {"dmg", "koly", NULL, 4, 0, 0},
+  {"dmg", "\x78\x01\xED\xD0", NULL, 4, 0, 0},
   {"pa30", "\x50\x41\x33\x30", NULL, 4, 0, 0},
   {"pcap", "\xA1\xB2\xC3\xD4", NULL, 4, 0, 0},
   {"pcap", "\xD4\xC3\xB2\xA1", NULL, 4, 0, 0},
